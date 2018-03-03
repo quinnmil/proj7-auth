@@ -17,24 +17,31 @@ Specifically, you used the boilerplate given in DockerRestAPI folder, and
 created the following:
 
 ** "http://<host:port>/listAll" should return all open and close times in the database
+
 ** "http://<host:port>/listOpenOnly" should return open times only
+
 ** "http://<host:port>/listCloseOnly" should return close times only
 
 * You also designed two different representations: one in csv and one 
  in json. For the above, JSON should be your default representation. 
 
 ** "http://<host:port>/listAll/csv" should return all open and close times in CSV format
+
 ** "http://<host:port>/listOpenOnly/csv" should return open times only in CSV format
+
 ** "http://<host:port>/listCloseOnly/csv" should return close times only in CSV format
 
 ** "http://<host:port>/listAll/json" should return all open and close times in JSON format
+
 ** "http://<host:port>/listOpenOnly/json" should return open times only in JSON format
+
 ** "http://<host:port>/listCloseOnly/json" should return close times only in JSON format
 
 * You also added a query parameter to get top "k" open and close
 times. For examples, see below.
 
 ** "http://<host:port>/listOpenOnly/csv?top=3" should return top 3 open times only (in ascending order) in CSV format 
+
 ** "http://<host:port>/listOpenOnly/json?top=5" should return top 5 open times only (in ascending order) in JSON format
 
 * You'll also designed consumer programs (e.g., in jQuery) to expose the services.
@@ -60,7 +67,7 @@ with a field `token` set to the authentication token for the user and
 a field `duration` set to the (approximate) number of seconds the token is 
 valid. On failure status code 401 (unauthorized) is returned.
 
-- GET **/<resource>**
+- GET **/RESOURCE-YOU-CREATED-IN-PROJECT-6**
 
     Return a protected <resource>, which is basically what you created in project
 6. This request must be authenticated using token-based authentication only
