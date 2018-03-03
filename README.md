@@ -1,6 +1,4 @@
-# Project 7: Brevet time calculator service
-
-Simple listing service from project 5 stored in MongoDB database.
+# Project 7: Authenticated brevet time calculator service
 
 ## What is in this repository
 
