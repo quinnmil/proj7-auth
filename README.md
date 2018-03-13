@@ -1,80 +1,82 @@
-# Project 7: Authenticated brevet time calculator service
+# Project 7: Brevet time calculator service with Authorization
 
-## What is in this repository
+Simple listing service from project 5 stored in MongoDB database. 
 
-You have a minimal implementation of password- and token-based authentication modules in "Auth" folder, using which you can create authenticated REST API-based services (as demonstrated in class). 
+- Implemented by: Quinn Milionis
+- Contact: qdm@uoregon.edu
 
-## Recap 
 
-You will reuse *your* code from project
-6 (https://github.com/UOCIS322/proj6-rest). Recall: you created the 
-following three parts: 
+#### About
+- Main Application calculates control times for brevets. 
+- This essentially replaces the calcuator at https://rusa.org/octime_acp.html with flask and ajax. 
+- Subsequent updates create and maintain a database for storing these brevet times.
+- Latest update allows you to create authenticated REST API-based services
 
-* You designed RESTful services to expose what is stored in MongoDB.
-Specifically, you used the boilerplate given in DockerRestAPI folder, and
-created the following:
 
-** "http://<host:port>/listAll" should return all open and close times in the database
+- Controls are essentially "checkpoints" where a ride has to get proof of passage. The control times are the minimum and maximum times by which the rider has to arrive at the location. 
+- The algorithm for calculating controle times is described at
+https://rusa.org/octime_alg.html .  Additional background information
+is in https://rusa.org/pages/rulesForRiders .
+- Updated version in this project included two new buttons, Submit and Display. 'Submit' transmits the table data to a database, while 'Display' returns those database entires on a sepeate page.
+- For this project, registering a new user and displaying tolkens can be done through cURL from a terminal window. 
 
-** "http://<host:port>/listOpenOnly" should return open times only
+## Instructions
 
-** "http://<host:port>/listCloseOnly" should return close times only
+- Navigate to the /DockerRestAPI directory in a Unix shell. 
 
-* You also designed two different representations: one in csv and one 
+- With docker running, use 'docker-compose build up' to build and run.
+
+- To register(use shell/terminal) :  'curl localhost:5001/api/register -d "user_name<USERNAME>&password=<PASSWORD>"'
+
+- To get the token: curl localhost:5001/api/token -u <PASSWORD>:<USERNAME>	
+
+- To access the following RESTful services, navigae to 'localhost:5000' in a browswer with the docker-compose files running. 
+
+- To view the Brevet calculator and add entries into the database, navigate to 'localhost:5005'
+
+- To view a specific service, go to 'localhost:5001/SERVICE' with SERVICE replaced with any of the services described in the project description below.
+
+- to display a set amnount of results, the url can be modified with '?top=NUM' where NUM is replaced by an integer. 
+
+## Project Description:
+
+ project has three parts: 
+
+* You will design RESTful service to expose what is stored in MongoDB.
+Specifically, you'll use the boilerplate given in DockerRestAPI folder, and
+create the following:
+
+   "http://<host:port>/listAll" should return all open and close times in the database
+   
+   "http://<host:port>/listOpenOnly" should return open times only
+   
+   "http://<host:port>/listCloseOnly" should return close times only
+
+* You will also design two different representations: one in csv and one 
  in json. For the above, JSON should be your default representation. 
 
-** "http://<host:port>/listAll/csv" should return all open and close times in CSV format
+   "http://<host:port>/listAll/csv" should return all open and close times in CSV format
+   
+   "http://<host:port>/listOpenOnly/csv" should return open times only in CSV format
+   
+   "http://<host:port>/listCloseOnly/csv" should return close times only in CSV format
 
-** "http://<host:port>/listOpenOnly/csv" should return open times only in CSV format
+   "http://<host:port>/listAll/json" should return all open and close times in JSON format
+   
+   "http://<host:port>/listOpenOnly/json" should return open times only in JSON format
+   
+   "http://<host:port>/listCloseOnly/json" should return close times only in JSON format
 
-** "http://<host:port>/listCloseOnly/csv" should return close times only in CSV format
-
-** "http://<host:port>/listAll/json" should return all open and close times in JSON format
-
-** "http://<host:port>/listOpenOnly/json" should return open times only in JSON format
-
-** "http://<host:port>/listCloseOnly/json" should return close times only in JSON format
-
-* You also added a query parameter to get top "k" open and close
+* You will also add a query parameter to get top "k" open and close
 times. For examples, see below.
 
-** "http://<host:port>/listOpenOnly/csv?top=3" should return top 3 open times only (in ascending order) in CSV format 
+   "http://<host:port>/listOpenOnly/csv?top=3" should return top 3 open times only (in ascending order) in CSV format 
+   
+   "http://<host:port>/listOpenOnly/json?top=5" should return top 5 open times only (in ascending order) in JSON format
 
-** "http://<host:port>/listOpenOnly/json?top=5" should return top 5 open times only (in ascending order) in JSON format
+* You'll also design consumer programs (e.g., in jQuery) to use the service
+  that you expose. "website" folder inside DockerRestAPI is an example of that. It is
+  uses PHP. You're welcome to use either PHP or jQuery to consume your
+  services. NOTE: your consumer program should be in a different container like
+  example in DockerRestAPI.
 
-* You'll also designed consumer programs (e.g., in jQuery) to expose the services.
-
-## Functionality you will add
-
-In this project, you will add the following functionality:
-
-- POST **/api/register**
-
-    Registers a new user. On success a status code 201 is returned. The body of the response contains
-a JSON object with the newly added user. A `Location` header contains the URI
-of the new user. On failure status code 400 (bad request) is returned. Note: The 
-password is hashed before it is stored in the database. Once hashed, the original 
-password is discarded. Your database should have three fields: id (unique index),
-username and password. 
-
-- GET **/api/token**
-
-    Returns a token. This request must be authenticated using a HTTP Basic
-Authentication (see password.py for example). On success a JSON object is returned 
-with a field `token` set to the authentication token for the user and 
-a field `duration` set to the (approximate) number of seconds the token is 
-valid. On failure status code 401 (unauthorized) is returned.
-
-- GET **/RESOURCE-YOU-CREATED-IN-PROJECT-6**
-
-    Return a protected <resource>, which is basically what you created in project 6. This request must be authenticated using token-based authentication only (see testToken.py). HTTP password-based (basic) authentication is not allowed. On success a JSON object with data for the authenticated user is returned. On failure status code 401 (unauthorized) is returned.
-
-## Tasks
-
-You'll turn in your credentials.ini using which we will get the following:
-
-* The working application with three parts.
-
-* Dockerfile
-
-* docker-compose.yml
