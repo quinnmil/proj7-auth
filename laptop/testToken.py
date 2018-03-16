@@ -6,9 +6,6 @@ from flask import request
 import flask
 import time
 
-# initialization
-# app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 
 def generate_auth_token(expiration=600):
 	 # s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
@@ -25,36 +22,18 @@ def verify_auth_token(token):
 		except BadSignature:
 				return None    # invalid token
 		return "Success"
+
 def token_required(f):
 	@wraps(f)
-	def decorated_function(*args, **kwargs):
-		message = None
-		authHeader = request.headers.get("Authorization")
-		if authHeader == None:
-			message = "No HTTP"
-		else:
-			try:
-				authMode, authString = authHeader.split(" ", 1)
-			except ValueError:
-				message = "Bad auth string"
-		if message != None:
-			return {"message":message}, 401
-		userPass = b64decode(authString)
-		try:
-			theToken, password = userPass.decode().split(":", 1)
-		except ValueError:
-			message = "Bad auth string"
-			if message != None:
-				return flask.jsonify({"message":message}), 401
+	def decorated(*args, **kwargs):
+		# Get token
+		token = request.args.get('token')
 
-		if verify_auth_token(theToken):
-			return f(*args, **kwargs)
-		else:
-			return {"message":"bad token"}, 401
-		return decorated_function
+		if not token:
+			return {"Unauthorized":"No token found"}, 401
 
-# if __name__ == "__main__":
-#     t = generate_auth_token(10)
-#     for i in range(1, 20):
-# 	print verify_auth_token(t)
-#         time.sleep(1)
+		if verify_auth_token(token):
+			return f(*args, **kwargs) # Run the underlying method
+		else:
+			return {"Unauthorized":"Token invalid"}, 401
+	return decorated

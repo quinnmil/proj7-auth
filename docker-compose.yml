@@ -12,13 +12,13 @@ services:
       - brevet
 
   brevet:
-    build: ./DockerMongo
+    build: ./brevet
 
     command: python -u app.py
     ports:
       - "5005:5000"
     volumes:
-      - ./DockerMongo:/todo
+      - ./brevet:/todo
     links:
       - db
 

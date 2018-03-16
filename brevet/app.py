@@ -18,7 +18,6 @@ app.secret_key = 'al;sdjf;wiejrtwkf'
 client = MongoClient('db', 27017)
 db = client.tododb
 collection = db.control
-
 collection.delete_many({})
 
 @app.route("/")

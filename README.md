@@ -30,6 +30,8 @@ is in https://rusa.org/pages/rulesForRiders .
 
 - To get the token: curl localhost:5001/api/token -u <PASSWORD>:<USERNAME>	
 
+- To access with auth: curl <host>:<port>/listAll?token=<token>
+
 - To access the following RESTful services, navigae to 'localhost:5000' in a browswer with the docker-compose files running. 
 
 - To view the Brevet calculator and add entries into the database, navigate to 'localhost:5005'

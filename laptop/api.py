@@ -3,11 +3,12 @@ import flask
 import csv
 import json
 from flask import Flask, Response, request
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 import logging
 import pymongo
 from pymongo import MongoClient
 from base64 import b64decode
+from bson.objectid import ObjectId
 from password import hash_password, verify_password
 from testToken import generate_auth_token, verify_auth_token, token_required
 
@@ -99,6 +100,67 @@ class listCloseOnlycsv(Resource):
 		csvfile = open('data.csv', 'r')
 		return Response(csvfile, mimetype='text/csv')
 
+# Authorization
+#===================
+
+
+class registerUser(Resource):
+	def post(self):
+		# Get fields
+		parser = reqparse.RequestParser()
+		parser.add_argument('username', required=True, help="username cannot be blank!")
+		parser.add_argument('password', required=True, help="password cannot be blank")
+		args = parser.parse_args()
+
+		username = args['username']
+		password = args['password']
+
+		# Check for empty arguments
+		if username == None or password == None:
+			return {"client error":"bad request"}, 400
+
+		# Check for duplicate username
+		if collection.users.find_one({"username":username}) != None:
+			return {"client error":"username already exists"}, 418
+		# Hash password
+		hashedpass = hash_password(password)
+		# throw away password data
+		password = None
+
+		# Insert into database
+		post_id = collection.users.insert_one({"username":username,"password":hashedpass})
+		userId = str(post_id.inserted_id)
+
+		# Success
+		return {"success":"created","username":username,"location":userId}, 201
+
+class getToken(Resource):
+	def get(self):
+		# Check for correct user fields
+		authheader = request.headers.get("Authorization")
+		if authheader == None:
+			return {"Unauthorized":"No Authorization header found"}, 401
+
+		# Get user credentials
+		credentials = authheader.split(' ')
+		decode_creds = b64decode(credentials[1]).decode()
+		user = decode_creds.split(':')
+		username = user[0]
+		password = user[1]
+		
+		# Find user in database
+		document = collection.users.find_one({"username":username})
+		if document == None:
+			return {"Unauthorized":"user not found"}, 401
+
+		# Check password
+		if not verify_password(password, document['password']):
+			return {"Unauthorized":"wrong password"}, 401
+
+		# Generate token
+		token = generate_auth_token(expiration=1000)
+		return {"token":token.decode(), "duration":1000}, 200
+
 
 
 # Create routes
@@ -108,61 +170,9 @@ api.add_resource(ListClosedOnly, '/listCloseOnly','/listCLoseOnly/json')
 api.add_resource(listAllcsv, '/listAll/csv')
 api.add_resource(listOpenOnlycsv, '/listOpenOnly/csv')
 api.add_resource(listCloseOnlycsv, '/listCloseOnly/csv')
+api.add_resource(registerUser, '/api/register')
+api.add_resource(getToken, '/api/token')
 
-
-# Authorization
-#===================
-
-@app.route("/api/register", methods = ["POST"])
-def Register():
-	username = request.form.get("user_name")
-	unhashedpass = request.form.get("password")
-	if username == None or unhashedpass == None:
-		return flask.jsonify({"message":"bad request"}), 400
-	if db.users.find_one({"user_name":username}) != None:
-		return flask.jsonify({"message":"Username already exists"})
-	hashedpass = hash_password(unhashedpass)
-	result = db.users.insert_one({"user_name":username,"password":hashedpass})
-	if result.acknowledged != True:
-		return flask.jsonify({"message":"Database error"}), 400
-	return flask.jsonify({"message":"created","username":username}), 201,
-	{"Location":"/api/users/" + str(username)}
-
-@app.route("/api/token")
-def getToken():
-	message = None
-	authHeader = request.headers.get("Authorization")
-	if authHeader == None:
-		message = "No http auth header field"
-	else:
-		try:
-			authMode, authString = authHeader.split(" ", 1)
-		except ValueError:
-			message = "bad auth string"
-
-	if message != None:
-		return flask.jsonify({"message":message}), 401
-
-	userPass = b64decode(authString)
-	try:
-		user, password = userPass.decode().split(":", 1)
-	except ValueError:
-		message = "bad auth string"
-
-	if message != None:
-		return flask.jsonify({"message":message}), 401
-
-	app.logger.debug("Looking up " + str(user))
-
-	DBUser = db.users.find_one({"user_name":user})
-	if DBUser == None:
-		return flask.jsonify({"message":"User is not registered"}), 401
-
-	if not verify_password(password, DBUser['password']):
-		return flask.jsonify({"message":"Wrong password"}), 401
-	
-	newToken = generate_auth_token(expiration=1000)
-	return flask.jsonify({"token":newToken.decode(), "duration":1000}), 200
 
 #  functions: 
 # ===========================
